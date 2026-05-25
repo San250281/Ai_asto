@@ -96,6 +96,22 @@ When backend is running: http://localhost:8000/docs
 - Push notifications
 - Admin dashboard
 
+## Push to GitHub
+
+Remote is configured as `https://github.com/San250281/Ai_asto.git`.
+
+1. Create empty repo: https://github.com/new?name=Ai_asto
+2. Push:
+
+```powershell
+cd d:\Ai_Kundli\Ai_asto
+git push -u origin main
+```
+
+Or: `.\scripts\push_github.ps1 -GitHubUsername San250281`
+
+See `docs/GITHUB_SETUP.md` for details.
+
 ## License
 
 Proprietary - All rights reserved.
