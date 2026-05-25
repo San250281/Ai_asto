@@ -1,0 +1,70 @@
+# Environment
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+
+# Flutter
+mobile/.dart_tool/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/.packages
+mobile/build/
+mobile/.pub-cache/
+mobile/.pub/
+mobile/**/ios/Pods/
+mobile/**/ios/.symlinks/
+mobile/**/android/.gradle/
+mobile/**/android/app/debug/
+mobile/**/android/app/profile/
+mobile/**/android/app/release/
+mobile/**/android/local.properties
+mobile/**/android/key.properties
+*.iml
+*.ipr
+*.iws
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets
+*.pem
+*.key
+firebase-service-account.json
+google-services.json
+GoogleService-Info.plist
+
+# Logs
+logs/
+*.log
+
+# Docker
+postgres_data/
+redis_data/
+
+# Admin
+admin/node_modules/
+admin/dist/
