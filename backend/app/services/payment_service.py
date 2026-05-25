@@ -173,3 +173,50 @@ class PaymentService:
             .order_by(Subscription.expires_at.desc())
         )
         return result.scalar_one_or_none()
+
+    async def verify_razorpay_payment(
+        self,
+        db: AsyncSession,
+        user: User,
+        order_id: str,
+        payment_id: str,
+        signature: str,
+    ) -> Subscription:
+        import razorpay
+
+        client = razorpay.Client(
+            auth=(settings.razorpay_key_id, settings.razorpay_key_secret)
+        )
+        try:
+            client.utility.verify_payment_signature(
+                {
+                    "razorpay_order_id": order_id,
+                    "razorpay_payment_id": payment_id,
+                    "razorpay_signature": signature,
+                }
+            )
+        except Exception as exc:
+            raise ValueError("Invalid payment signature") from exc
+
+        result = await db.execute(
+            select(Payment).where(
+                Payment.gateway_order_id == order_id,
+                Payment.user_id == user.id,
+            )
+        )
+        payment = result.scalar_one_or_none()
+        if not payment:
+            raise ValueError("Payment order not found")
+
+        plan_type = payment.metadata.get("plan_type", "premium_monthly")
+        payment.status = "completed"
+        payment.transaction_id = payment_id
+
+        existing = await self.get_user_subscription(db, user.id)
+        if existing and existing.status == "active":
+            existing.status = "expired"
+
+        sub = await self.activate_subscription(db, user, plan_type, payment.id)
+        payment.subscription_id = sub.id
+        await db.flush()
+        return sub

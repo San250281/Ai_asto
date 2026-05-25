@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -7,6 +8,7 @@ from app.models.user import User
 from app.schemas.subscription import (
     CreateOrderRequest,
     PaymentOrderResponse,
+    RazorpayVerifyRequest,
     SubscriptionPlanResponse,
     SubscriptionResponse,
 )
@@ -49,16 +51,61 @@ async def get_subscription(
     return SubscriptionResponse.model_validate(sub)
 
 
+@router.post("/razorpay/verify", response_model=SubscriptionResponse)
+async def verify_razorpay_payment(
+    request: RazorpayVerifyRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    service = PaymentService()
+    try:
+        sub = await service.verify_razorpay_payment(
+            db,
+            user,
+            request.razorpay_order_id,
+            request.razorpay_payment_id,
+            request.razorpay_signature,
+        )
+        return SubscriptionResponse.model_validate(sub)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 @router.post("/razorpay/webhook")
 async def razorpay_webhook(request: Request, db: AsyncSession = Depends(get_db)):
-    body = await request.body()
-    # Verify signature in production with razorpay_webhook_secret
+    import hashlib
+    import hmac
     import json
+    from uuid import UUID
+
+    from app.config import get_settings
+    from app.models.user import User
+
+    settings = get_settings()
+    body = await request.body()
+    signature = request.headers.get("X-Razorpay-Signature", "")
+
+    if settings.razorpay_webhook_secret:
+        expected = hmac.new(
+            settings.razorpay_webhook_secret.encode(),
+            body,
+            hashlib.sha256,
+        ).hexdigest()
+        if not hmac.compare_digest(expected, signature):
+            raise HTTPException(status_code=400, detail="Invalid webhook signature")
+
     payload = json.loads(body)
     if payload.get("event") == "payment.captured":
-        notes = payload.get("payload", {}).get("payment", {}).get("entity", {}).get("notes", {})
-        # Activate subscription based on notes
-        pass
+        entity = payload.get("payload", {}).get("payment", {}).get("entity", {})
+        notes = entity.get("notes", {})
+        user_id = notes.get("user_id")
+        plan_type = notes.get("plan", "premium_monthly")
+        if user_id:
+            result = await db.execute(select(User).where(User.id == UUID(user_id)))
+            user = result.scalar_one_or_none()
+            if user:
+                service = PaymentService()
+                await service.activate_subscription(db, user, plan_type)
     return {"status": "ok"}
 
 

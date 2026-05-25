@@ -29,6 +29,12 @@ class PaymentOrderResponse(BaseModel):
     client_secret: Optional[str] = None
 
 
+class RazorpayVerifyRequest(BaseModel):
+    razorpay_order_id: str
+    razorpay_payment_id: str
+    razorpay_signature: str
+
+
 class SubscriptionResponse(BaseModel):
     id: UUID
     plan_type: str

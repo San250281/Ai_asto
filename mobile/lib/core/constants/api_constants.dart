@@ -33,6 +33,7 @@ class ApiConstants {
   // Payments
   static const String plans = '/payments/plans';
   static const String createOrder = '/payments/create-order';
+  static const String razorpayVerify = '/payments/razorpay/verify';
   static const String subscription = '/payments/subscription';
 }
 
