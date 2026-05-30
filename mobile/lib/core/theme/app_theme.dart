@@ -70,7 +70,7 @@ class AppTheme {
         ),
         iconTheme: const IconThemeData(color: AppColors.gold),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: AppColors.surface,
         elevation: 8,
         shadowColor: AppColors.gold.withValues(alpha: 0.1),

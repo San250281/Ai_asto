@@ -48,7 +48,7 @@ class KundliScreen extends ConsumerWidget {
   }
 }
 
-class _GenerateView extends ConsumerWidget {
+class _GenerateView extends StatelessWidget {
   final WidgetRef ref;
   const _GenerateView({required this.ref});
 
