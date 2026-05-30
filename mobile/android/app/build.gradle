@@ -88,7 +88,3 @@ flutter {
 dependencies {
     implementation platform("com.google.firebase:firebase-bom:33.7.0")
 }
-
-configurations.configureEach {
-    exclude group: "com.razorpay", module: "core"
-}
